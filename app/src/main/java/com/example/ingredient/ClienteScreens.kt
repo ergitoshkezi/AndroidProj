@@ -603,3 +603,113 @@ private fun parseDish(snapshot: DataSnapshot): MenuItem {
         region = snapshot.child("region").getValue(String::class.java) ?: ""
     )
 }
+
+@Composable
+fun ProfileScreen(
+    userId: String,
+    databaseReference: DatabaseReference,
+    onLogout: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var nome by remember { mutableStateOf("") }
+    var cognome by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var selectedAllergens by remember { mutableStateOf<List<AllergeneType>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val sessionManager = SessionManager(context)
+
+    // Load user data once
+    LaunchedEffect(userId) {
+        databaseReference.child("users").child(userId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    nome = snapshot.child("nome").getValue(String::class.java) ?: ""
+                    cognome = snapshot.child("cognome").getValue(String::class.java) ?: ""
+                    email = snapshot.child("email").getValue(String::class.java) ?: ""
+                    val rawAllergens = snapshot.child("allergeni")
+                        .children.mapNotNull { it.getValue(String::class.java) }
+                    selectedAllergens = rawAllergens.mapNotNull {
+                        runCatching { AllergeneType.valueOf(it) }.getOrNull()
+                    }
+                    isLoading = false
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    isLoading = false
+                    Log.e("ProfileScreen", "Failed to load profile: ${error.message}")
+                }
+            })
+    }
+
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text("Profilo", style = MaterialTheme.typography.headlineMedium)
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Non-editable profile fields
+                Text("Nome: $nome", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Cognome: $cognome", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Email: $email", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Allergen chip selector (editable)
+                Text("I miei allergeni:", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                AllergeneChipSelector(
+                    selected = selectedAllergens,
+                    onSelectionChange = { selectedAllergens = it }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Save allergens button
+                Button(
+                    onClick = {
+                        databaseReference.child("users").child(userId)
+                            .child("allergeni")
+                            .setValue(selectedAllergens.map { it.name })
+                            .addOnSuccessListener {
+                                coroutineScope.launch { snackbarHostState.showSnackbar("Saved!") }
+                            }
+                            .addOnFailureListener { e ->
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Could not save. Try again.")
+                                }
+                                Log.e("ProfileScreen", "Failed to save allergens", e)
+                            }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Salva allergeni")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Logout button
+                OutlinedButton(
+                    onClick = {
+                        sessionManager.logout()
+                        onLogout()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Logout")
+                }
+            }
+        }
+    }
+}
