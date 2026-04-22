@@ -10,6 +10,15 @@
 
 **Requirements:** REQ-ID-001, REQ-ID-002, REQ-ID-003, REQ-ID-004, REQ-ID-005, REQ-ID-006, REQ-ID-007, RNF-SEC-001, RNF-SEC-002, RNF-PERF-001, RNF-PRIVACY-001
 
+**Plans:** 5 plans in 3 waves
+
+Plans:
+- [ ] 01-PLAN-A.md — Model layer: AllergeneType enum, User data class, SessionManager (Wave 1)
+- [ ] 01-PLAN-B.md — DisclaimerScreen + MainActivity startup routing (Wave 2)
+- [ ] 01-PLAN-C.md — AllergeneChipSelector reusable composable (Wave 2)
+- [ ] 01-PLAN-D.md — Extend AuthScreens: Login error msgs, Registration nome/cognome/allergeni, session save, password logging fix (Wave 3)
+- [ ] 01-PLAN-E.md — ProfileScreen as 3rd tab + Logout (Wave 3)
+
 **Files in scope:**
 - `app/src/main/java/com/example/ingredient/MainActivity.kt`
 - `app/src/main/java/com/example/ingredient/AuthScreens.kt`
