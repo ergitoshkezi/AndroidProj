@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-last_updated: "2026-04-22T22:23:10.554Z"
+last_updated: "2025-07-14T00:00:00Z"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 0
-  completed_plans: 2
+  completed_plans: 4
 ---
 
 # Ingredient App — Project State
@@ -92,6 +92,10 @@ See `.planning/codebase/CONCERNS.md` for full list. Critical items:
 | Phase | Name | Status | Date |
 |---|---|---|---|
 | — | Codebase Map | ✅ Done | 2026-04-22 |
+| 01-A | SessionManager + AllergeneType models | ✅ Done | 2025-07-14 |
+| 01-B | MainActivity startup routing | ✅ Done | 2025-07-14 |
+| 01-C | AllergeneChipSelector composable | ✅ Done | 2025-07-14 |
+| 01-D | Auth screen extensions (session save, nome/cognome/allergens) | ✅ Done | 2025-07-14 |
 
 ---
 
