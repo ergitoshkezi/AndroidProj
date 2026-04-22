@@ -354,3 +354,29 @@ fun RegistrationScreen(
         }
     }
 }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun AllergeneChipSelector(
+    selected: List<AllergeneType>,
+    onSelectionChange: (List<AllergeneType>) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        AllergeneType.entries.forEach { allergen ->
+            FilterChip(
+                selected = allergen in selected,
+                onClick = {
+                    onSelectionChange(
+                        if (allergen in selected) selected - allergen else selected + allergen
+                    )
+                },
+                label = { Text(allergen.displayName) }
+            )
+        }
+    }
+}
