@@ -83,6 +83,12 @@ fun ClienteScreen(
                     icon = { Icon(Icons.Default.LocalOffer, contentDescription = "Offers") },
                     label = { Text("Offers") }
                 )
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                    label = { Text("Profilo") }
+                )
             }
         }
     ) { innerPadding ->
@@ -91,6 +97,12 @@ fun ClienteScreen(
         when (selectedTab) {
             0 -> SearchTab(databaseReference, userLocation, onLogout, currentModifier)
             1 -> OffersTab(databaseReference, userLocation, currentModifier)
+            2 -> ProfileScreen(
+                userId = userId ?: "",
+                databaseReference = databaseReference,
+                onLogout = onLogout,
+                modifier = currentModifier
+            )
         }
     }
 }
