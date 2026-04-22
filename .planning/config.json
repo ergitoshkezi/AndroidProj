@@ -1,0 +1,19 @@
+{
+  "tdd_mode": false,
+  "research_enabled": true,
+  "plan_checker_enabled": true,
+  "nyquist_validation_enabled": false,
+  "commit_docs": true,
+  "text_mode": false,
+  "context_window": 200000,
+  "workflow": {
+    "discuss_mode": "discuss",
+    "pattern_mapper": true,
+    "tdd_mode": false,
+    "security_enforcement": true,
+    "ui_phase": true,
+    "ui_safety_gate": false,
+    "ai_integration_phase": false,
+    "nyquist_validation": false
+  }
+}
