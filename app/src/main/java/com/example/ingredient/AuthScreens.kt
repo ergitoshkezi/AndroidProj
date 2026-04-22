@@ -186,6 +186,7 @@ fun RegistrationScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val sessionManager = SessionManager(context)
 
     Column(
         modifier = modifier
@@ -337,7 +338,7 @@ fun RegistrationScreen(
 
                         if (emailExists) {
                             isLoading = false
-                            errorMessage = "Email already registered"
+                            errorMessage = "Email already in use"
                             return
                         }
 
@@ -346,9 +347,12 @@ fun RegistrationScreen(
 
                         if (userId != null) {
                             val userData = mapOf(
+                                "nome" to nome,
+                                "cognome" to cognome,
                                 "email" to email,
                                 "password" to password,
                                 "userType" to selectedUserType,
+                                "allergeni" to selectedAllergens.map { it.name },
                                 "createdAt" to System.currentTimeMillis()
                             )
 
@@ -357,6 +361,7 @@ fun RegistrationScreen(
                                     isLoading = false
                                     Log.d("RegistrationScreen", "User registered: $userId")
                                     Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                    sessionManager.saveSession(userId, selectedUserType)
                                     onRegisterSuccess(userId, selectedUserType)
                                 }
                                 .addOnFailureListener { e ->
