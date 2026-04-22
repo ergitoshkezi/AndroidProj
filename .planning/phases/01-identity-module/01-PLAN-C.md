@@ -2,8 +2,8 @@
 phase: 01-identity-module
 plan: C
 type: execute
-wave: 2
-depends_on: [01-A]
+wave: 3
+depends_on: [01-A, 01-B]
 files_modified:
   - app/src/main/java/com/example/ingredient/AuthScreens.kt
 autonomous: true
