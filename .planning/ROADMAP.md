@@ -1,6 +1,6 @@
 # Ingredient App — Roadmap
 
-**Version:** 1.0 | **Status:** Active | **Date:** 2026-04-22
+**Version:** 1.0 | **Status:** Active | **Date:** 2026-04-22 | **Phase 1:** ✅ COMPLETE
 
 ---
 
@@ -13,11 +13,11 @@
 **Plans:** 5 plans in 3 waves
 
 Plans:
-- [ ] 01-PLAN-A.md — Model layer: AllergeneType enum, User data class, SessionManager (Wave 1)
-- [ ] 01-PLAN-B.md — DisclaimerScreen + MainActivity startup routing (Wave 2)
-- [ ] 01-PLAN-C.md — AllergeneChipSelector reusable composable (Wave 2)
-- [ ] 01-PLAN-D.md — Extend AuthScreens: Login error msgs, Registration nome/cognome/allergeni, session save, password logging fix (Wave 3)
-- [ ] 01-PLAN-E.md — ProfileScreen as 3rd tab + Logout (Wave 3)
+- [x] 01-PLAN-A.md — Model layer: AllergeneType enum, User data class, SessionManager (Wave 1)
+- [x] 01-PLAN-B.md — DisclaimerScreen + MainActivity startup routing (Wave 2)
+- [x] 01-PLAN-C.md — AllergeneChipSelector reusable composable (Wave 2)
+- [x] 01-PLAN-D.md — Extend AuthScreens: Login error msgs, Registration nome/cognome/allergeni, session save, password logging fix (Wave 3)
+- [x] 01-PLAN-E.md — ProfileScreen as 3rd tab + Logout (Wave 3)
 
 **Files in scope:**
 - `app/src/main/java/com/example/ingredient/MainActivity.kt`
