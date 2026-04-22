@@ -179,6 +179,8 @@ fun RegistrationScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var nome by remember { mutableStateOf("") }
+    var cognome by remember { mutableStateOf("") }
     var selectedUserType by remember { mutableStateOf("Cliente") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
@@ -197,6 +199,26 @@ fun RegistrationScreen(
         )
 
         Spacer(modifier = Modifier.height(32.dp))
+
+        OutlinedTextField(
+            value = nome,
+            onValueChange = { nome = it },
+            label = { Text("Nome") },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = cognome,
+            onValueChange = { cognome = it },
+            label = { Text("Cognome") },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = email,
@@ -272,7 +294,7 @@ fun RegistrationScreen(
 
         Button(
             onClick = {
-                if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                if (nome.isBlank() || cognome.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
                     errorMessage = "Please fill in all fields"
                     return@Button
                 }
