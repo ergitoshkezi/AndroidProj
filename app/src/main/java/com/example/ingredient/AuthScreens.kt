@@ -346,6 +346,8 @@ fun RegistrationScreen(
                         val userId = databaseReference.child("users").push().key
 
                         if (userId != null) {
+                            // DECISION: password stored as plain text in RTDB (MVP).
+                            // TODO: migrate to Firebase Authentication or hash (BCrypt) before production.
                             val userData = mapOf(
                                 "nome" to nome,
                                 "cognome" to cognome,
@@ -377,7 +379,11 @@ fun RegistrationScreen(
 
                     override fun onCancelled(error: DatabaseError) {
                         isLoading = false
-                        errorMessage = "Database error: ${error.message}"
+                        errorMessage = if (error.code == DatabaseError.NETWORK_ERROR || error.code == DatabaseError.DISCONNECTED) {
+                            "Connection error. Check your internet."
+                        } else {
+                            "Database error: ${error.message}"
+                        }
                         Log.e("RegistrationScreen", "Database error: ${error.message}")
                     }
                 })
