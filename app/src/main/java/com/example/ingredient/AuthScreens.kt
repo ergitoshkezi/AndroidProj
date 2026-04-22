@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.ingredient.model.AllergeneType
+import com.example.ingredient.model.SessionManager
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -54,6 +55,7 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val sessionManager = SessionManager(context)
 
     Column(
         modifier = modifier
@@ -127,6 +129,7 @@ fun LoginScreen(
                                 found = true
                                 Log.d("LoginScreen", "Login successful for user: $userId")
                                 Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                                sessionManager.saveSession(userId ?: "", userType)
                                 onLoginSuccess(userId ?: "", userType)
                                 break
                             }
@@ -140,7 +143,11 @@ fun LoginScreen(
 
                     override fun onCancelled(error: DatabaseError) {
                         isLoading = false
-                        errorMessage = "Database error: ${error.message}"
+                        errorMessage = if (error.code == DatabaseError.NETWORK_ERROR || error.code == DatabaseError.DISCONNECTED) {
+                            "Connection error. Check your internet."
+                        } else {
+                            "Database error: ${error.message}"
+                        }
                         Log.e("LoginScreen", "Database error: ${error.message}")
                     }
                 })
