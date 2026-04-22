@@ -73,14 +73,27 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun IngredientApp(tesseractManager: EnhancedTesseractManager, databaseReference: DatabaseReference) {
-    var currentScreen by remember { mutableStateOf("Login") }
+fun IngredientApp(
+    tesseractManager: EnhancedTesseractManager,
+    databaseReference: DatabaseReference,
+    initialScreen: String = "Login"
+) {
+    var currentScreen by remember { mutableStateOf(initialScreen) }
     var currentUserId by remember { mutableStateOf<String?>(null) }
     var currentUserEmail by remember { mutableStateOf<String?>(null) }
     var userType by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         when (currentScreen) {
+            "disclaimer" -> DisclaimerScreen(
+                onAccepted = {
+                    val sessionManager = SessionManager(context)
+                    sessionManager.setDisclaimerAccepted()
+                    currentScreen = "Login"
+                },
+                modifier = Modifier.padding(innerPadding)
+            )
             "Login" -> LoginScreen(
                 databaseReference = databaseReference,
                 onNavigateToRegister = { currentScreen = "Register" },
