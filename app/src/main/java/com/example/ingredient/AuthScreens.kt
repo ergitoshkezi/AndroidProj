@@ -181,6 +181,7 @@ fun RegistrationScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var nome by remember { mutableStateOf("") }
     var cognome by remember { mutableStateOf("") }
+    var selectedAllergens by remember { mutableStateOf<List<AllergeneType>>(emptyList()) }
     var selectedUserType by remember { mutableStateOf("Cliente") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
@@ -251,6 +252,15 @@ fun RegistrationScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Allergens (optional):", style = MaterialTheme.typography.bodyLarge)
+        Spacer(modifier = Modifier.height(8.dp))
+        AllergeneChipSelector(
+            selected = selectedAllergens,
+            onSelectionChange = { selectedAllergens = it }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
