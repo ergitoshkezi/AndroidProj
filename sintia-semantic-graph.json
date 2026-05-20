@@ -1,0 +1,1036 @@
+{
+  "nodes": {
+    "com.example.ingredient.ExampleInstrumentedTest": {
+      "type": "kotlin_class",
+      "file": "app/src/androidTest/java/com/example/ingredient/ExampleInstrumentedTest.kt",
+      "className": "ExampleInstrumentedTest",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.AuthScreens": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "className": "AuthScreens",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.ClienteScreens": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "className": "ClienteScreens",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.FirebaseMenuUploader": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/FirebaseMenuUploader.kt",
+      "className": "FirebaseMenuUploader",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.ImageColumnSplitter": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/ImageColumnSplitter.kt",
+      "className": "ImageColumnSplitter",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.IngredientApplication": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/IngredientApplication.kt",
+      "className": "IngredientApplication",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.LLMApiClient": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "className": "LLMApiClient",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.LocalAiParser": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/LocalAiParser.kt",
+      "className": "LocalAiParser",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.MainActivity": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "className": "MainActivity",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.ManualColumnSelector": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "className": "ManualColumnSelector",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.MenuEditorScreen": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "className": "MenuEditorScreen",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.MenuParser": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/MenuParser.kt",
+      "className": "MenuParser",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.model.AllergeneType": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/model/AllergeneType.kt",
+      "className": "AllergeneType",
+      "package": "com.example.ingredient.model"
+    },
+    "com.example.ingredient.model.SessionManager": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/model/SessionManager.kt",
+      "className": "SessionManager",
+      "package": "com.example.ingredient.model"
+    },
+    "com.example.ingredient.model.User": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/model/User.kt",
+      "className": "User",
+      "package": "com.example.ingredient.model"
+    },
+    "com.example.ingredient.TesseractManager": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/TesseractManager.kt",
+      "className": "TesseractManager",
+      "package": "com.example.ingredient"
+    },
+    "com.example.ingredient.ui.theme.Color": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/ui/theme/Color.kt",
+      "className": "Color",
+      "package": "com.example.ingredient.ui.theme"
+    },
+    "com.example.ingredient.ui.theme.Theme": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "className": "Theme",
+      "package": "com.example.ingredient.ui.theme"
+    },
+    "com.example.ingredient.ui.theme.Type": {
+      "type": "kotlin_class",
+      "file": "app/src/main/java/com/example/ingredient/ui/theme/Type.kt",
+      "className": "Type",
+      "package": "com.example.ingredient.ui.theme"
+    },
+    "com.example.ingredient.ExampleUnitTest": {
+      "type": "kotlin_class",
+      "file": "app/src/test/java/com/example/ingredient/ExampleUnitTest.kt",
+      "className": "ExampleUnitTest",
+      "package": "com.example.ingredient"
+    }
+  },
+  "edges": [
+    {
+      "sourceFile": "app/src/androidTest/java/com/example/ingredient/ExampleInstrumentedTest.kt",
+      "targetNode": "androidx.test.platform.app.InstrumentationRegistry",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/androidTest/java/com/example/ingredient/ExampleInstrumentedTest.kt",
+      "targetNode": "androidx.test.ext.junit.runners.AndroidJUnit4",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/androidTest/java/com/example/ingredient/ExampleInstrumentedTest.kt",
+      "targetNode": "org.junit.Test",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/androidTest/java/com/example/ingredient/ExampleInstrumentedTest.kt",
+      "targetNode": "org.junit.runner.RunWith",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/androidTest/java/com/example/ingredient/ExampleInstrumentedTest.kt",
+      "targetNode": "org.junit.Assert.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "android.widget.Toast",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.activity.compose.BackHandler",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.foundation.layout.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.foundation.text.KeyboardOptions",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.material3.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.runtime.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.ui.Alignment",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.ui.Modifier",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.ui.platform.LocalContext",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.ui.text.input.KeyboardType",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.ui.text.input.PasswordVisualTransformation",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "androidx.compose.ui.unit.dp",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "com.example.ingredient.model.AllergeneType",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "com.example.ingredient.model.SessionManager",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "com.google.firebase.database.DataSnapshot",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "com.google.firebase.database.DatabaseError",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "com.google.firebase.database.DatabaseReference",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "com.google.firebase.database.FirebaseDatabase",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/AuthScreens.kt",
+      "targetNode": "com.google.firebase.database.ValueEventListener",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "android.annotation.SuppressLint",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "android.location.Location",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.foundation.background",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.foundation.clickable",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.foundation.layout.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.foundation.lazy.LazyColumn",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.foundation.lazy.items",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.foundation.rememberScrollState",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.foundation.shape.RoundedCornerShape",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.foundation.verticalScroll",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.material.icons.Icons",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.material.icons.filled.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.material3.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.runtime.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.Alignment",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.Modifier",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.draw.clip",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.graphics.Color",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.platform.LocalContext",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.text.font.FontWeight",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.text.style.TextDecoration",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.unit.dp",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "androidx.compose.ui.unit.sp",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "com.google.android.gms.location.LocationServices",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "com.google.firebase.database.DataSnapshot",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "com.google.firebase.database.DatabaseError",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "com.google.firebase.database.DatabaseReference",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "com.google.firebase.database.ValueEventListener",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "com.example.ingredient.model.AllergeneType",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "com.example.ingredient.model.SessionManager",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "kotlinx.coroutines.launch",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "kotlinx.coroutines.tasks.await",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ClienteScreens.kt",
+      "targetNode": "java.util.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/FirebaseMenuUploader.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/FirebaseMenuUploader.kt",
+      "targetNode": "com.google.firebase.database.DatabaseReference",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/FirebaseMenuUploader.kt",
+      "targetNode": "kotlinx.coroutines.tasks.await",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ImageColumnSplitter.kt",
+      "targetNode": "android.graphics.Bitmap",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ImageColumnSplitter.kt",
+      "targetNode": "android.graphics.Color",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ImageColumnSplitter.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ImageColumnSplitter.kt",
+      "targetNode": "kotlin.math.max",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ImageColumnSplitter.kt",
+      "targetNode": "kotlin.math.min",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/IngredientApplication.kt",
+      "targetNode": "android.app.Application",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/IngredientApplication.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/IngredientApplication.kt",
+      "targetNode": "kotlinx.coroutines.CoroutineScope",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/IngredientApplication.kt",
+      "targetNode": "kotlinx.coroutines.Dispatchers",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/IngredientApplication.kt",
+      "targetNode": "kotlinx.coroutines.SupervisorJob",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/IngredientApplication.kt",
+      "targetNode": "kotlinx.coroutines.launch",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "kotlinx.coroutines.Dispatchers",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "kotlinx.coroutines.withContext",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "org.json.JSONArray",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "org.json.JSONObject",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "java.io.BufferedReader",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "java.io.InputStreamReader",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "java.io.OutputStreamWriter",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "java.net.HttpURLConnection",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LLMApiClient.kt",
+      "targetNode": "java.net.URL",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LocalAiParser.kt",
+      "targetNode": "android.content.Context",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LocalAiParser.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LocalAiParser.kt",
+      "targetNode": "com.google.mediapipe.tasks.genai.llminference.LlmInference",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/LocalAiParser.kt",
+      "targetNode": "java.io.File",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.content.ContentValues",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.content.Context",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.graphics.Bitmap",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.graphics.BitmapFactory",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.net.Uri",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.os.Build",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.os.Bundle",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.os.Environment",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.provider.MediaStore",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "android.widget.Toast",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.activity.ComponentActivity",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.activity.compose.rememberLauncherForActivityResult",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.activity.compose.setContent",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.activity.enableEdgeToEdge",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.activity.result.contract.ActivityResultContracts",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.foundation.layout.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.foundation.rememberScrollState",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.foundation.verticalScroll",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.material3.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.runtime.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.ui.Alignment",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.ui.Modifier",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.ui.platform.LocalContext",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "androidx.compose.ui.unit.dp",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "com.example.ingredient.model.SessionManager",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "com.example.ingredient.ui.theme.IngredientTheme",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "com.google.firebase.database.DatabaseReference",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "com.google.firebase.database.FirebaseDatabase",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "kotlinx.coroutines.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "java.io.File",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MainActivity.kt",
+      "targetNode": "java.io.FileWriter",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "android.graphics.Bitmap",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.foundation.Canvas",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.foundation.gestures.detectDragGestures",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.foundation.gestures.detectTapGestures",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.foundation.layout.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.material3.Button",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.material3.MaterialTheme",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.material3.Text",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.runtime.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.Alignment",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.Modifier",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.geometry.Offset",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.graphics.Color",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.graphics.asImageBitmap",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.graphics.drawscope.Stroke",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.input.pointer.pointerInput",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.layout.onGloballyPositioned",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.unit.IntSize",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "androidx.compose.ui.unit.dp",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "kotlin.math.abs",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ManualColumnSelector.kt",
+      "targetNode": "kotlin.math.roundToInt",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.foundation.layout.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.foundation.rememberScrollState",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.foundation.verticalScroll",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.material.icons.Icons",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.material.icons.filled.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.material3.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.runtime.",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.ui.Alignment",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.ui.Modifier",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "androidx.compose.ui.unit.dp",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "com.google.firebase.database.DatabaseReference",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuEditorScreen.kt",
+      "targetNode": "kotlinx.coroutines.launch",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuParser.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuParser.kt",
+      "targetNode": "org.json.JSONArray",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/MenuParser.kt",
+      "targetNode": "org.json.JSONObject",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/model/SessionManager.kt",
+      "targetNode": "android.content.Context",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/model/SessionManager.kt",
+      "targetNode": "android.content.SharedPreferences",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/TesseractManager.kt",
+      "targetNode": "android.content.Context",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/TesseractManager.kt",
+      "targetNode": "android.graphics.Bitmap",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/TesseractManager.kt",
+      "targetNode": "android.util.Log",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/TesseractManager.kt",
+      "targetNode": "com.googlecode.tesseract.android.TessBaseAPI",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/TesseractManager.kt",
+      "targetNode": "java.io.File",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/TesseractManager.kt",
+      "targetNode": "java.io.InputStream",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Color.kt",
+      "targetNode": "androidx.compose.ui.graphics.Color",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "android.app.Activity",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "android.os.Build",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "androidx.compose.foundation.isSystemInDarkTheme",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "androidx.compose.material3.MaterialTheme",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "androidx.compose.material3.darkColorScheme",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "androidx.compose.material3.dynamicDarkColorScheme",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "androidx.compose.material3.dynamicLightColorScheme",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "androidx.compose.material3.lightColorScheme",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "androidx.compose.runtime.Composable",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Theme.kt",
+      "targetNode": "androidx.compose.ui.platform.LocalContext",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Type.kt",
+      "targetNode": "androidx.compose.material3.Typography",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Type.kt",
+      "targetNode": "androidx.compose.ui.text.TextStyle",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Type.kt",
+      "targetNode": "androidx.compose.ui.text.font.FontFamily",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Type.kt",
+      "targetNode": "androidx.compose.ui.text.font.FontWeight",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/main/java/com/example/ingredient/ui/theme/Type.kt",
+      "targetNode": "androidx.compose.ui.unit.sp",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/test/java/com/example/ingredient/ExampleUnitTest.kt",
+      "targetNode": "org.junit.Test",
+      "type": "DEPENDS_ON"
+    },
+    {
+      "sourceFile": "app/src/test/java/com/example/ingredient/ExampleUnitTest.kt",
+      "targetNode": "org.junit.Assert.",
+      "type": "DEPENDS_ON"
+    }
+  ]
+}

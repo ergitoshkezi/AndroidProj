@@ -112,3 +112,16 @@
 | REQ-REST-001 | Restaurant owner: upload menu via OCR | 4 |
 | REQ-REST-002 | Restaurant owner: edit dish price | 4 |
 | REQ-REST-003 | Fix FirebaseMenuUploader schema mismatch | 4 |
+
+## REQ-001: Restaurant entity owned by Ristoratore
+
+When a user registers as Ristoratore, the system must create a /restaurants/{userId} node in
+Firebase RTDB containing: nomeRistorante, indirizzo (resolved via Google Geocoding), telefono,
+tipoCucina, lat, lon, createdAt.
+
+The /restaurants/{userId} key is the same as /users/{userId} (1:1 relationship).
+Menu dishes reference estaurantId (already implemented). The restaurant entity is
+the source of truth for name and coordinates — FirebaseMenuUploader must read from it.
+
+**Acceptance:** Ristoratore completes registration → both /users and /restaurants nodes
+written atomically. Login as Ristoratore → restaurant node readable.

@@ -93,7 +93,7 @@ databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEv
 - **Location:** Lines 397 and 420 (two occurrences inside `RistoratoreScreen` composable)
 
 ```kotlin
-val apiKey = "SIEMENS_API_KEY_REMOVED"
+val apiKey = BuildConfig.SIEMENS_API_KEY  // secret rimosso — usa BuildConfig o variabile d'ambiente
 val llmClient = LLMApiClient(apiKey)
 ```
 

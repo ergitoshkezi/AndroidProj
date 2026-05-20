@@ -99,6 +99,15 @@ See `.planning/codebase/CONCERNS.md` for full list. Critical items:
 
 ---
 
+## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 6 added: 2
+- Phase 7 added: Search & Discovery
+
+---
+
 ## Open Decisions
 
 | ID | Decision | Status |

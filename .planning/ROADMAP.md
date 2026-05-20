@@ -98,6 +98,26 @@ Plans:
 - OCR menu upload flow (camera → Tesseract → LLM parse → review → save)
 - Fix FirebaseMenuUploader: write to /dishes/{dishId} at root level
 
+### Phase 6: 2
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 5
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 6 to break down)
+
+### Phase 7: Search & Discovery
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 6
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 7 to break down)
+
 ---
 
 ## Phase 5: Production Hardening

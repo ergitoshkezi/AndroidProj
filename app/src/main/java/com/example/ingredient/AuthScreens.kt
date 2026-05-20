@@ -1,10 +1,14 @@
 package com.example.ingredient
 
+import android.location.Geocoder
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +24,12 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import java.util.Locale
+import kotlin.coroutines.resume
 
 @Composable
 fun DisclaimerScreen(
@@ -169,6 +179,37 @@ fun LoginScreen(
     }
 }
 
+/** Resolves an address string to (lat, lon, formattedAddress). Returns null if not found. */
+private suspend fun geocodeAddress(context: android.content.Context, address: String): Triple<Double, Double, String>? {
+    return try {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            suspendCancellableCoroutine { cont ->
+                geocoder.getFromLocationName(address, 1) { results ->
+                    if (results.isNotEmpty()) {
+                        val addr = results[0]
+                        cont.resume(Triple(addr.latitude, addr.longitude, addr.getAddressLine(0) ?: address))
+                    } else {
+                        cont.resume(null)
+                    }
+                }
+            }
+        } else {
+            withContext(Dispatchers.IO) {
+                @Suppress("DEPRECATION")
+                val results = geocoder.getFromLocationName(address, 1)
+                if (!results.isNullOrEmpty()) {
+                    val addr = results[0]
+                    Triple(addr.latitude, addr.longitude, addr.getAddressLine(0) ?: address)
+                } else null
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("Geocoder", "geocodeAddress failed", e)
+        null
+    }
+}
+
 @Composable
 fun RegistrationScreen(
     databaseReference: DatabaseReference,
@@ -187,14 +228,28 @@ fun RegistrationScreen(
     var errorMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // Restaurant-specific fields (only used when selectedUserType == "Ristoratore")
+    var nomeRistorante by remember { mutableStateOf("") }
+    var indirizzoInput by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
+    var tipoCucina by remember { mutableStateOf("") }
+    var resolvedAddress by remember { mutableStateOf("") }
+    var resolvedLat by remember { mutableStateOf(0.0) }
+    var resolvedLon by remember { mutableStateOf(0.0) }
+    var isResolvingAddress by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "Register",
             style = MaterialTheme.typography.headlineMedium
@@ -292,6 +347,101 @@ fun RegistrationScreen(
             )
         }
 
+        // Restaurant fields — only for Ristoratore
+        if (selectedUserType == "Ristoratore") {
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Dati del Ristorante", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = nomeRistorante,
+                onValueChange = { nomeRistorante = it },
+                label = { Text("Nome Ristorante") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = indirizzoInput,
+                    onValueChange = {
+                        indirizzoInput = it
+                        resolvedAddress = ""
+                        resolvedLat = 0.0
+                        resolvedLon = 0.0
+                    },
+                    label = { Text("Indirizzo") },
+                    modifier = Modifier.weight(1f),
+                    enabled = !isLoading && !isResolvingAddress,
+                    singleLine = true
+                )
+                Button(
+                    onClick = {
+                        if (indirizzoInput.isBlank()) return@Button
+                        coroutineScope.launch {
+                            isResolvingAddress = true
+                            errorMessage = ""
+                            val result = geocodeAddress(context, indirizzoInput)
+                            isResolvingAddress = false
+                            if (result != null) {
+                                resolvedLat = result.first
+                                resolvedLon = result.second
+                                resolvedAddress = result.third
+                            } else {
+                                errorMessage = "Indirizzo non trovato. Riprova."
+                            }
+                        }
+                    },
+                    enabled = !isLoading && !isResolvingAddress && indirizzoInput.isNotBlank(),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    if (isResolvingAddress) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text("Cerca")
+                    }
+                }
+            }
+
+            if (resolvedAddress.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "✓ $resolvedAddress",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = telefono,
+                onValueChange = { telefono = it },
+                label = { Text("Telefono") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = tipoCucina,
+                onValueChange = { tipoCucina = it },
+                label = { Text("Tipo di Cucina (es. Italiana, Giapponese)") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            )
+        }
+
         if (errorMessage.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -320,6 +470,17 @@ fun RegistrationScreen(
                     return@Button
                 }
 
+                if (selectedUserType == "Ristoratore") {
+                    if (nomeRistorante.isBlank() || indirizzoInput.isBlank() || telefono.isBlank()) {
+                        errorMessage = "Compila tutti i dati del ristorante"
+                        return@Button
+                    }
+                    if (resolvedLat == 0.0 && resolvedLon == 0.0) {
+                        errorMessage = "Risolvi l'indirizzo prima di procedere"
+                        return@Button
+                    }
+                }
+
                 isLoading = true
                 errorMessage = ""
 
@@ -342,7 +503,6 @@ fun RegistrationScreen(
                             return
                         }
 
-                        // Create new user
                         val userId = databaseReference.child("users").push().key
 
                         if (userId != null) {
@@ -358,13 +518,41 @@ fun RegistrationScreen(
                                 "createdAt" to System.currentTimeMillis()
                             )
 
+                            val restaurantData = if (selectedUserType == "Ristoratore") mapOf(
+                                "nomeRistorante" to nomeRistorante,
+                                "indirizzo" to resolvedAddress.ifEmpty { indirizzoInput },
+                                "telefono" to telefono,
+                                "tipoCucina" to tipoCucina,
+                                "lat" to resolvedLat,
+                                "lon" to resolvedLon,
+                                "createdAt" to System.currentTimeMillis()
+                            ) else null
+
+                            // Write user first, then restaurant (separate paths = no root permission needed)
                             databaseReference.child("users").child(userId).setValue(userData)
                                 .addOnSuccessListener {
-                                    isLoading = false
-                                    Log.d("RegistrationScreen", "User registered: $userId")
-                                    Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
-                                    sessionManager.saveSession(userId, selectedUserType)
-                                    onRegisterSuccess(userId, selectedUserType)
+                                    if (restaurantData != null) {
+                                        databaseReference.child("restaurants").child(userId)
+                                            .setValue(restaurantData)
+                                            .addOnSuccessListener {
+                                                isLoading = false
+                                                Log.d("RegistrationScreen", "User + restaurant registered: $userId")
+                                                Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                                sessionManager.saveSession(userId, selectedUserType)
+                                                onRegisterSuccess(userId, selectedUserType)
+                                            }
+                                            .addOnFailureListener { e ->
+                                                isLoading = false
+                                                errorMessage = "Registration failed: ${e.message}"
+                                                Log.e("RegistrationScreen", "Restaurant write error", e)
+                                            }
+                                    } else {
+                                        isLoading = false
+                                        Log.d("RegistrationScreen", "User registered: $userId")
+                                        Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                        sessionManager.saveSession(userId, selectedUserType)
+                                        onRegisterSuccess(userId, selectedUserType)
+                                    }
                                 }
                                 .addOnFailureListener { e ->
                                     isLoading = false

@@ -51,6 +51,7 @@ fun ClienteScreen(
     userId: String?,
     databaseReference: DatabaseReference,
     onLogout: () -> Unit,
+    onViewVetrina: (restaurantId: String, restaurantName: String, lat: Double?, lon: Double?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(0) }
@@ -95,8 +96,8 @@ fun ClienteScreen(
         val currentModifier = modifier.padding(innerPadding)
         
         when (selectedTab) {
-            0 -> SearchTab(databaseReference, userLocation, onLogout, currentModifier)
-            1 -> OffersTab(databaseReference, userLocation, currentModifier)
+            0 -> SearchTab(databaseReference, userLocation, onLogout, onViewVetrina, currentModifier)
+            1 -> OffersTab(databaseReference, userLocation, onViewVetrina, currentModifier)
             2 -> ProfileScreen(
                 userId = userId ?: "",
                 databaseReference = databaseReference,
@@ -112,6 +113,7 @@ fun SearchTab(
     databaseReference: DatabaseReference,
     userLocation: Location?,
     onLogout: () -> Unit,
+    onViewVetrina: (restaurantId: String, restaurantName: String, lat: Double?, lon: Double?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -145,7 +147,7 @@ fun SearchTab(
         }
 
         if (sortByPriceAsc) {
-            filtered = filtered.sortedBy { it.dish.price.toDoubleOrNull() ?: 0.0 }
+            filtered = filtered.sortedBy { it.dish.price }
         } else {
             filtered = filtered.sortedByDescending { it.matchScore }
         }
@@ -163,13 +165,21 @@ fun SearchTab(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Discover Food",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Column {
+                Text(
+                    text = "🍴 Discover Food",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Cerca piatti per ingredienti",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             TextButton(onClick = onLogout) {
-                Text("Logout")
+                Text("Logout", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -180,17 +190,31 @@ fun SearchTab(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Search ingredients...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                singleLine = true
+                placeholder = { Text("Es: mozzarella, tonno...") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = null,
+                         tint = MaterialTheme.colorScheme.primary)
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = { showFilters = !showFilters }) {
-                Icon(
-                    Icons.Default.FilterList, 
-                    contentDescription = "Filters",
-                    tint = if (showFilters) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        if (showFilters) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    )
+            ) {
+                IconButton(onClick = { showFilters = !showFilters }) {
+                    Icon(
+                        Icons.Default.FilterList,
+                        contentDescription = "Filtri",
+                        tint = if (showFilters) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
 
@@ -207,7 +231,7 @@ fun SearchTab(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Button(
             onClick = {
@@ -218,28 +242,55 @@ fun SearchTab(
                 isSearching = true
             },
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
             enabled = searchQuery.isNotBlank() && !isSearching
         ) {
             if (isSearching) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cercando...")
             } else {
-                Text("Search Dishes")
+                Icon(Icons.Default.Search, contentDescription = null,
+                     modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Cerca Piatti")
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (filteredResults.isNotEmpty()) {
+            Text(
+                text = "${filteredResults.size} piatti trovati",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         if (filteredResults.isEmpty() && !isSearching && searchQuery.isNotBlank()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No matching dishes found with current filters.")
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("😕", fontSize = 40.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Nessun piatto trovato con i filtri correnti.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filteredResults) { result ->
-                    DishResultItem(result)
+                    DishResultItem(result, onViewVetrina)
                 }
             }
         }
@@ -261,41 +312,122 @@ fun FilterPanel(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Filters", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text("Max Distance: ${maxDistance.toInt()} km", style = MaterialTheme.typography.bodySmall)
-            Slider(
-                value = maxDistance,
-                onValueChange = onMaxDistanceChange,
-                valueRange = 1f..100f
-            )
-
-            Row(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = selectedCountry,
-                    onValueChange = onCountryChange,
-                    label = { Text("Country") },
-                    modifier = Modifier.weight(1f),
-                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.FilterList,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedTextField(
-                    value = selectedRegion,
-                    onValueChange = onRegionChange,
-                    label = { Text("Region") },
-                    modifier = Modifier.weight(1f),
-                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    "Filtri",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = sortByPriceAsc, onCheckedChange = onSortByPriceChange)
-                Text("Sort by price (Low to High)", style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Distance slider
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Distanza max", style = MaterialTheme.typography.bodySmall)
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .padding(horizontal = 12.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        "${maxDistance.toInt()} km",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Slider(
+                value = maxDistance,
+                onValueChange = onMaxDistanceChange,
+                valueRange = 1f..100f,
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary
+                )
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Country / Region fields
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = selectedCountry,
+                    onValueChange = onCountryChange,
+                    label = { Text("Paese", fontSize = 12.sp) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
+                )
+                OutlinedTextField(
+                    value = selectedRegion,
+                    onValueChange = onRegionChange,
+                    label = { Text("Regione", fontSize = 12.sp) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Sort by price toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.SortByAlpha,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Ordina per prezzo (↑)", style = MaterialTheme.typography.bodySmall)
+                }
+                Switch(
+                    checked = sortByPriceAsc,
+                    onCheckedChange = onSortByPriceChange,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                )
             }
         }
     }
@@ -305,6 +437,7 @@ fun FilterPanel(
 fun OffersTab(
     databaseReference: DatabaseReference,
     userLocation: Location?,
+    onViewVetrina: (restaurantId: String, restaurantName: String, lat: Double?, lon: Double?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var offerResults by remember { mutableStateOf<List<SearchResult>>(emptyList()) }
@@ -324,10 +457,15 @@ fun OffersTab(
             .padding(16.dp)
     ) {
         Text(
-            text = "Best Offers Nearby",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "🏷 Offerte Vicino a Te",
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = "I piatti in promozione nelle vicinanze",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -338,15 +476,23 @@ fun OffersTab(
             }
         } else if (offerResults.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No active offers found nearby.")
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("🎉", fontSize = 40.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Nessuna offerta attiva nelle vicinanze.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(offerResults) { result ->
-                    DishResultItem(result)
+                    DishResultItem(result, onViewVetrina)
                 }
             }
         }
@@ -354,103 +500,150 @@ fun OffersTab(
 }
 
 @Composable
-fun DishResultItem(result: SearchResult) {
+fun DishResultItem(
+    result: SearchResult,
+    onViewVetrina: (restaurantId: String, restaurantName: String, lat: Double?, lon: Double?) -> Unit = { _, _, _, _ -> }
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = result.dish.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+        ) {
+            // Accent left bar
+            Box(
+                modifier = Modifier
+                    .width(5.dp)
+                    .fillMaxHeight()
+                    .background(
+                        if (result.dish.isOffer) Color(0xFFE53935)
+                        else MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
                     )
-                    Text(
-                        text = result.restaurantName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    result.distance?.let {
-                        Text(
-                            text = "${String.format("%.1f", it / 1000f)} km away",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                
-                Column(horizontalAlignment = Alignment.End) {
-                    if (result.dish.isOffer) {
-                        Text(
-                            text = "€${result.dish.originalPrice}",
-                            style = MaterialTheme.typography.bodySmall,
-                            textDecoration = TextDecoration.LineThrough,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "€${result.dish.price}",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFD32F2F) // Offer red
-                        )
-                    } else {
-                        Text(
-                            text = "€${result.dish.price}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = result.dish.description,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 2
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(modifier = Modifier
+                .padding(horizontal = 14.dp, vertical = 12.dp)
+                .weight(1f)
             ) {
-                if (result.dish.country.isNotEmpty() || result.dish.region.isNotEmpty()) {
-                    val locationText = listOfNotNull(
-                        result.dish.country.takeIf { it.isNotBlank() },
-                        result.dish.region.takeIf { it.isNotBlank() }
-                    ).joinToString(", ")
-                    
+                // Top row: name + price
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                        Text(
+                            text = result.dish.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "🍽 ${result.restaurantName}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable {
+                                onViewVetrina(
+                                    result.restaurantId,
+                                    result.restaurantName,
+                                    result.restaurantLat,
+                                    result.restaurantLon
+                                )
+                            }
+                        )
+                    }
+                    // Price block
+                    Column(horizontalAlignment = Alignment.End) {
+                        if (result.dish.isOffer && result.dish.originalPrice != null) {
+                            Text(
+                                text = "€${"%.2f".format(result.dish.originalPrice)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                textDecoration = TextDecoration.LineThrough,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (result.dish.isOffer) Color(0xFFFFEBEE)
+                                    else MaterialTheme.colorScheme.primaryContainer
+                                )
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "€${"%.2f".format(result.dish.price)}",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (result.dish.isOffer) Color(0xFFE53935)
+                                        else MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                if (result.dish.description.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Origin: $locationText",
+                        text = result.dish.description,
                         style = MaterialTheme.typography.bodySmall,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2
                     )
                 }
 
-                if (result.dish.isOffer) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Color(0xFFFFEBEE))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            "OFFER", 
-                            color = Color(0xFFD32F2F), 
-                            fontSize = 10.sp, 
-                            fontWeight = FontWeight.Bold
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Tag chips row
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    result.distance?.let {
+                        InfoChip("📍 ${"%.1f".format(it / 1000f)} km")
+                    }
+                    if (result.dish.calories > 0) {
+                        InfoChip(
+                            text = "🔥 ${result.dish.calories} kcal",
+                            containerColor = Color(0xFFFFF3E0),
+                            textColor = Color(0xFFE65100)
                         )
+                    }
+                    if (result.dish.isOffer) {
+                        InfoChip(
+                            text = "OFFERTA",
+                            containerColor = Color(0xFFFFEBEE),
+                            textColor = Color(0xFFE53935)
+                        )
+                    }
+                    if (result.dish.country.isNotBlank()) {
+                        InfoChip("🌍 ${result.dish.country}")
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun InfoChip(
+    text: String,
+    containerColor: Color = Color(0xFFF0F0F0),
+    textColor: Color = Color(0xFF555555)
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50.dp))
+            .background(containerColor)
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(text, fontSize = 11.sp, color = textColor, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -464,64 +657,47 @@ private fun performSearch(
         .map { it.trim().lowercase() }
         .filter { it.isNotEmpty() }
 
-    databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
+    // REQ-SEARCH-004: query /dishes directly — no O(n) /users scan
+    databaseReference.child("dishes").addListenerForSingleValueEvent(object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             val allResults = mutableListOf<SearchResult>()
 
-            for (userSnapshot in snapshot.children) {
-                val userType = userSnapshot.child("userType").getValue(String::class.java)
-                if (userType == "Ristoratore") {
-                    val restaurantId = userSnapshot.key ?: ""
-                    val restaurantName = userSnapshot.child("menuMetadata/restaurantName").getValue(String::class.java) ?: "Unknown Restaurant"
-                    
-                    // Simulate/Read location
-                    val lat = userSnapshot.child("lat").getValue(Double::class.java)
-                    val lon = userSnapshot.child("lon").getValue(Double::class.java)
-                    
+            for (dishSnapshot in snapshot.children) {
+                val dish = parseDish(dishSnapshot)
+                val dishIngredients = dish.allergens.map { it.lowercase() }
+
+                val matched = searchIngredients.filter { searchTerm ->
+                    dishIngredients.any { it.contains(searchTerm) } ||
+                    dish.name.lowercase().contains(searchTerm)
+                }
+                val score = matched.size
+
+                if (score > 0) {
+                    val restaurantLat = dishSnapshot.child("restaurantLat").getValue(Double::class.java)
+                    val restaurantLon = dishSnapshot.child("restaurantLon").getValue(Double::class.java)
                     var distance: Float? = null
-                    if (userLocation != null && lat != null && lon != null) {
+                    if (userLocation != null && restaurantLat != null && restaurantLon != null) {
                         val restLoc = Location("").apply {
-                            latitude = lat
-                            longitude = lon
+                            latitude = restaurantLat
+                            longitude = restaurantLon
                         }
                         distance = userLocation.distanceTo(restLoc)
                     }
-
-                    val menuSnapshot = userSnapshot.child("menu")
-                    for (categorySnapshot in menuSnapshot.children) {
-                        val dishesSnapshot = categorySnapshot.child("dishes")
-                        for (dishSnapshot in dishesSnapshot.children) {
-                            val dish = parseDish(dishSnapshot)
-                            val fullText = (dish.name + " " + dish.description).lowercase()
-
-                            val matched = mutableListOf<String>()
-                            var score = 0
-                            for (ingredient in searchIngredients) {
-                                if (fullText.contains(ingredient)) {
-                                    score++
-                                    matched.add(ingredient)
-                                }
-                            }
-
-                            if (score > 0) {
-                                allResults.add(
-                                    SearchResult(
-                                        restaurantId = restaurantId,
-                                        restaurantName = restaurantName,
-                                        dish = dish,
-                                        matchScore = score,
-                                        matchedIngredients = matched,
-                                        distance = distance,
-                                        restaurantLat = lat,
-                                        restaurantLon = lon
-                                    )
-                                )
-                            }
-                        }
-                    }
+                    allResults.add(
+                        SearchResult(
+                            restaurantId = dishSnapshot.child("restaurantId").getValue(String::class.java) ?: "",
+                            restaurantName = dishSnapshot.child("restaurantName").getValue(String::class.java) ?: "Unknown Restaurant",
+                            dish = dish,
+                            matchScore = score,
+                            matchedIngredients = matched,
+                            distance = distance,
+                            restaurantLat = restaurantLat,
+                            restaurantLon = restaurantLon
+                        )
+                    )
                 }
             }
-            onResult(allResults)
+            onResult(allResults.sortedByDescending { it.matchScore })
         }
 
         override fun onCancelled(error: DatabaseError) {
@@ -535,53 +711,38 @@ private fun fetchOffers(
     userLocation: Location?,
     onResult: (List<SearchResult>) -> Unit
 ) {
-    databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
+    // REQ-SEARCH-004: query /dishes directly — no O(n) /users scan
+    databaseReference.child("dishes").addListenerForSingleValueEvent(object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             val offers = mutableListOf<SearchResult>()
 
-            for (userSnapshot in snapshot.children) {
-                val userType = userSnapshot.child("userType").getValue(String::class.java)
-                if (userType == "Ristoratore") {
-                    val restaurantId = userSnapshot.key ?: ""
-                    val restaurantName = userSnapshot.child("menuMetadata/restaurantName").getValue(String::class.java) ?: "Unknown Restaurant"
-                    
-                    val lat = userSnapshot.child("lat").getValue(Double::class.java)
-                    val lon = userSnapshot.child("lon").getValue(Double::class.java)
-                    
+            for (dishSnapshot in snapshot.children) {
+                val dish = parseDish(dishSnapshot)
+                if (dish.isOffer) {
+                    val restaurantLat = dishSnapshot.child("restaurantLat").getValue(Double::class.java)
+                    val restaurantLon = dishSnapshot.child("restaurantLon").getValue(Double::class.java)
                     var distance: Float? = null
-                    if (userLocation != null && lat != null && lon != null) {
+                    if (userLocation != null && restaurantLat != null && restaurantLon != null) {
                         val restLoc = Location("").apply {
-                            latitude = lat
-                            longitude = lon
+                            latitude = restaurantLat
+                            longitude = restaurantLon
                         }
                         distance = userLocation.distanceTo(restLoc)
                     }
-
-                    val menuSnapshot = userSnapshot.child("menu")
-                    for (categorySnapshot in menuSnapshot.children) {
-                        val dishesSnapshot = categorySnapshot.child("dishes")
-                        for (dishSnapshot in dishesSnapshot.children) {
-                            val dish = parseDish(dishSnapshot)
-                            
-                            if (dish.isOffer) {
-                                offers.add(
-                                    SearchResult(
-                                        restaurantId = restaurantId,
-                                        restaurantName = restaurantName,
-                                        dish = dish,
-                                        matchScore = 0,
-                                        matchedIngredients = emptyList(),
-                                        distance = distance,
-                                        restaurantLat = lat,
-                                        restaurantLon = lon
-                                    )
-                                )
-                            }
-                        }
-                    }
+                    offers.add(
+                        SearchResult(
+                            restaurantId = dishSnapshot.child("restaurantId").getValue(String::class.java) ?: "",
+                            restaurantName = dishSnapshot.child("restaurantName").getValue(String::class.java) ?: "Unknown Restaurant",
+                            dish = dish,
+                            matchScore = 0,
+                            matchedIngredients = emptyList(),
+                            distance = distance,
+                            restaurantLat = restaurantLat,
+                            restaurantLon = restaurantLon
+                        )
+                    )
                 }
             }
-            // Sort by distance if available, otherwise just return
             onResult(offers.sortedBy { it.distance ?: Float.MAX_VALUE })
         }
 
@@ -592,15 +753,20 @@ private fun fetchOffers(
 }
 
 private fun parseDish(snapshot: DataSnapshot): MenuItem {
+    // Reads from approved /dishes/{dishId} schema (Italian field names)
+    val ingredients = snapshot.child("ingredienti").children
+        .mapNotNull { it.getValue(String::class.java) }
     return MenuItem(
-        name = snapshot.child("name").getValue(String::class.java) ?: "",
-        description = snapshot.child("description").getValue(String::class.java) ?: "",
-        allergens = snapshot.child("allergens").getValue(String::class.java) ?: "",
-        price = snapshot.child("price").getValue(String::class.java) ?: "0.00",
-        originalPrice = snapshot.child("originalPrice").getValue(String::class.java) ?: "",
-        isOffer = snapshot.child("isOffer").getValue(Boolean::class.java) ?: false,
-        country = snapshot.child("country").getValue(String::class.java) ?: "",
-        region = snapshot.child("region").getValue(String::class.java) ?: ""
+        name = snapshot.child("nome").getValue(String::class.java) ?: "",
+        description = snapshot.child("descrizione").getValue(String::class.java) ?: "",
+        allergens = ingredients,
+        price = snapshot.child("prezzo").getValue(Double::class.java) ?: 0.0,
+        originalPrice = snapshot.child("prezzoOfferta").getValue(Double::class.java),
+        isOffer = snapshot.child("offerta").getValue(Boolean::class.java) ?: false,
+        country = snapshot.child("paese").getValue(String::class.java) ?: "",
+        region = snapshot.child("regione").getValue(String::class.java) ?: "",
+        cucina = snapshot.child("cucina").getValue(String::class.java) ?: "",
+        calories = (snapshot.child("calorie").getValue(Long::class.java) ?: 0L).toInt()
     )
 }
 

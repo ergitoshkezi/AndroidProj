@@ -16,19 +16,26 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.ingredient.model.SessionManager
 import com.example.ingredient.ui.theme.IngredientTheme
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import androidx.core.content.FileProvider
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileWriter
@@ -78,11 +85,20 @@ fun IngredientApp(
     databaseReference: DatabaseReference,
     initialScreen: String = "Login"
 ) {
-    var currentScreen by remember { mutableStateOf(initialScreen) }
-    var currentUserId by remember { mutableStateOf<String?>(null) }
-    var currentUserEmail by remember { mutableStateOf<String?>(null) }
-    var userType by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+    var currentScreen by remember { mutableStateOf(initialScreen) }
+    var currentUserId by remember {
+        mutableStateOf<String?>(sessionManager.getUserId().ifEmpty { null })
+    }
+    var currentUserEmail by remember { mutableStateOf<String?>(null) }
+    var userType by remember { mutableStateOf(sessionManager.getUserType()) }
+
+    // Vetrina navigation state
+    var vetrinaRestaurantId by remember { mutableStateOf("") }
+    var vetrinaRestaurantName by remember { mutableStateOf("") }
+    var vetrinaLat by remember { mutableStateOf(0.0) }
+    var vetrinaLon by remember { mutableStateOf(0.0) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         when (currentScreen) {
@@ -124,6 +140,25 @@ fun IngredientApp(
                         userType = ""
                         currentScreen = "Login"
                     },
+                    onViewVetrina = { restaurantId, restaurantName, lat, lon ->
+                        vetrinaRestaurantId = restaurantId
+                        vetrinaRestaurantName = restaurantName
+                        vetrinaLat = lat ?: 0.0
+                        vetrinaLon = lon ?: 0.0
+                        currentScreen = "Vetrina"
+                    },
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
+            "Vetrina" -> {
+                VetrinaScreen(
+                    restaurantId = vetrinaRestaurantId,
+                    restaurantName = vetrinaRestaurantName,
+                    restaurantLat = vetrinaLat,
+                    restaurantLon = vetrinaLon,
+                    userId = currentUserId,
+                    databaseReference = databaseReference,
+                    onBack = { currentScreen = "Cliente" },
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -141,6 +176,12 @@ fun IngredientApp(
                     onViewMenu = {
                         currentScreen = "MenuEditor"
                     },
+                    onGenerateQr = {
+                        currentScreen = "QrCode"
+                    },
+                    onScanQrMenu = {
+                        currentScreen = "QrMenuImport"
+                    },
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -150,6 +191,27 @@ fun IngredientApp(
                         userId = currentUserId!!,
                         databaseReference = databaseReference,
                         onBack = { currentScreen = "Ristoratore" },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+            "QrCode" -> {
+                if (currentUserId != null) {
+                    QrCodeScreen(
+                        userId = currentUserId!!,
+                        databaseReference = databaseReference,
+                        onBack = { currentScreen = "Ristoratore" },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+            "QrMenuImport" -> {
+                if (currentUserId != null) {
+                    QrMenuImportScreen(
+                        userId = currentUserId!!,
+                        databaseReference = databaseReference,
+                        onBack = { currentScreen = "Ristoratore" },
+                        onMenuImported = { currentScreen = "Ristoratore" },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -167,6 +229,8 @@ fun RistoratoreScreen(
     databaseReference: DatabaseReference,
     onLogout: () -> Unit,
     onViewMenu: () -> Unit,
+    onGenerateQr: () -> Unit,
+    onScanQrMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -174,27 +238,35 @@ fun RistoratoreScreen(
     var recognizedText by remember { mutableStateOf("") }
     var isProcessing by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("") }
-    var modelReady by remember { mutableStateOf(LocalAiParser.isReady()) }
     var tesseractReady by remember { mutableStateOf(tesseractManager.isReady()) }
 
     var showManualSelector by remember { mutableStateOf(false) }
     var manualColumnRegions by remember { mutableStateOf<List<Pair<Int, Int>>?>(null) }
     var useColumnSplit by remember { mutableStateOf(false) }
+    var hasMenu by remember { mutableStateOf(false) }
+    var appendMode by remember { mutableStateOf(false) }
+
+    // Multi-photo import state
+    var photoUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var cameraPhotoUri by remember { mutableStateOf<Uri?>(null) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
-        while (!modelReady) {
-            delay(1000)
-            modelReady = LocalAiParser.isReady()
-            if (LocalAiParser.isInitializing()) {
-                statusMessage = "AI Model is loading... Please wait."
-            } else if (modelReady) {
-                statusMessage = "AI Model ready!"
-            }
+    // Check if this restaurant has dishes uploaded
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            databaseReference.child("dishes")
+                .orderByChild("restaurantId").equalTo(userId)
+                .addListenerForSingleValueEvent(object : com.google.firebase.database.ValueEventListener {
+                    override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
+                        hasMenu = snapshot.childrenCount > 0
+                    }
+                    override fun onCancelled(error: com.google.firebase.database.DatabaseError) {}
+                })
         }
     }
+
 
     LaunchedEffect(Unit) {
         while (!tesseractReady) {
@@ -240,6 +312,26 @@ fun RistoratoreScreen(
         }
     }
 
+    val multiImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            photoUris = uris
+            statusMessage = "${uris.size} foto selezionate"
+        }
+    }
+
+    val cameraPhotoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            cameraPhotoUri?.let { uri ->
+                photoUris = photoUris + uri
+                statusMessage = "${photoUris.size} foto pronte"
+            }
+        }
+    }
+
     if (showManualSelector && loadedBitmap != null) {
         ManualColumnSelector(
             bitmap = loadedBitmap!!,
@@ -258,259 +350,581 @@ fun RistoratoreScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.Top
     ) {
-        Text(
-            text = "Ristoratore",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "User ID: ${userId ?: "Unknown"}",
-            style = MaterialTheme.typography.bodySmall
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(onClick = onViewMenu) {
-                Text("View & Edit Menu")
-            }
-
-            Button(onClick = onLogout) {
-                Text("Logout")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        if (!modelReady || !tesseractReady) {
-            Text(
-                text = "⏳ Loading...",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (!tesseractReady) {
-                Text(
-                    text = "Initializing Tesseract OCR...",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            if (!modelReady) {
-                Text(
-                    text = statusMessage,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-        } else if (statusMessage == "AI Model ready!") {
-            Text(
-                text = "✅ AI Model Ready",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        Button(onClick = { imageLauncher.launch("image/*") }) {
-            Text("Load Menu Image")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        imageUri?.let {
+        // ── Header ──────────────────────────────────────────────────
+        Surface(color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth()) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Checkbox(
-                    checked = useColumnSplit,
-                    onCheckedChange = {
-                        if (!useColumnSplit) {
-                            showManualSelector = true
-                        } else {
-                            useColumnSplit = false
-                            manualColumnRegions = null
-                            statusMessage = ""
-                        }
-                    }
+                Icon(
+                    imageVector = Icons.Filled.Restaurant,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(30.dp)
                 )
-                Text("Split into columns")
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Pannello Ristoratore",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (userId != null) {
+                        Text(
+                            text = "ID: $userId",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+                IconButton(onClick = onLogout) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = "Logout",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+
+        // ── Processing indicator ─────────────────────────────────────
+        if (isProcessing) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            // ── Quick actions ─────────────────────────────────────────
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onViewMenu, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.MenuBook, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Gestisci Menu")
+                }
+                if (hasMenu) {
+                    OutlinedButton(
+                        onClick = onGenerateQr,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Icon(Icons.Filled.QrCode, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("QR Code")
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
-            if (useColumnSplit && manualColumnRegions != null) {
-                Text(
-                    text = "✓ ${manualColumnRegions!!.size} columns configured",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            // ── System init card ──────────────────────────────────────
+            if (!tesseractReady) {
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Inizializzazione sistema", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(10.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(10.dp))
+                            Text("OCR Engine in caricamento…", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
 
-                Button(
-                    onClick = { showManualSelector = true },
-                    enabled = !isProcessing
+            // ── Status message ────────────────────────────────────────
+            if (statusMessage.isNotEmpty()
+                && !statusMessage.contains("loading", ignoreCase = true)
+                && !statusMessage.contains("caricamento", ignoreCase = true)) {
+                val isSuccess = statusMessage.startsWith("✅")
+                val isError = statusMessage.startsWith("❌")
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = when {
+                            isSuccess -> MaterialTheme.colorScheme.primaryContainer
+                            isError -> MaterialTheme.colorScheme.errorContainer
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        }
+                    )
                 ) {
-                    Text("Adjust Columns")
+                    Text(
+                        text = statusMessage,
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = when {
+                            isSuccess -> MaterialTheme.colorScheme.onPrimaryContainer
+                            isError -> MaterialTheme.colorScheme.onErrorContainer
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(16.dp))
             }
 
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        isProcessing = true
-
-                        if (useColumnSplit && manualColumnRegions != null) {
-                            statusMessage = "Processing ${manualColumnRegions!!.size} columns..."
-
-                            processImageWithManualColumns(
-                                context = context,
-                                bitmap = loadedBitmap!!,
-                                tesseractManager = tesseractManager,
-                                columnRegions = manualColumnRegions!!
-                            ) { text ->
-                                recognizedText = text
-                                statusMessage = "Text recognized successfully!"
-                                isProcessing = false
-                            }
-                        } else {
-                            statusMessage = "Recognizing text..."
-                            processImageWithTesseract(
-                                context = context,
-                                uri = it,
-                                tesseractManager = tesseractManager,
-                                useColumnSplit = false
-                            ) { text ->
-                                recognizedText = text
-                                statusMessage = "Text recognized successfully!"
-                                isProcessing = false
+            // ── Step 1: Load image ────────────────────────────────────
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(32.dp)) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("1", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
                         }
-                    }
-                },
-                enabled = !isProcessing && tesseractReady
-            ) {
-                Text(if (isProcessing) "Processing..." else "Recognize Text")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        if (recognizedText.isNotEmpty()) {
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        isProcessing = true
-                        statusMessage = "Processing with LLM..."
-
-                        val apiKey = "SIEMENS_API_KEY_REMOVED"
-                        val llmClient = LLMApiClient(apiKey)
-                        val response = llmClient.processMenuText(recognizedText)
-
-                        saveResponseToFile(context, response, useJson = false)
-
-                        isProcessing = false
-                        statusMessage = "Menu saved as TXT!"
-                    }
-                },
-                enabled = !isProcessing
-            ) {
-                Text(if (isProcessing) "Processing..." else "Save Menu Response")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        isProcessing = true
-                        statusMessage = "Processing with LLM and uploading to Firebase..."
-
-                        val apiKey = "SIEMENS_API_KEY_REMOVED"
-                        val llmClient = LLMApiClient(apiKey)
-                        val response = llmClient.processMenuText(recognizedText)
-
-                        saveResponseToFile(context, response, useJson = false)
-
-                        val parser = MenuParser()
-                        val menuCategories = parser.parseMenuText(response)
-
-                        if (menuCategories.isNotEmpty() && userId != null) {
-                            val uploader = FirebaseMenuUploader(databaseReference)
-                            val result = uploader.uploadMenuWithMetadata(
-                                userId = userId,
-                                restaurantName = "My Restaurant",
-                                menuCategories = menuCategories
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text("Carica Immagine Menu", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = if (imageUri != null) "✓ Immagine caricata" else "Seleziona una foto del menu",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (imageUri != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
-
-                            if (result.isSuccess) {
-                                statusMessage = "✅ ${result.getOrNull()}"
-                            } else {
-                                statusMessage = "❌ Error: ${result.exceptionOrNull()?.message}"
-                            }
-                        } else {
-                            statusMessage = "❌ No menu data to upload or missing user ID"
                         }
-
-                        isProcessing = false
                     }
-                },
-                enabled = !isProcessing && userId != null
-            ) {
-                Text(if (isProcessing) "Processing..." else "Process & Upload to Firebase")
+                    Spacer(Modifier.height(12.dp))
+                    Button(onClick = { imageLauncher.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(if (imageUri != null) "Cambia Immagine" else "Scegli Immagine")
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+            // ── Step 2 + 3: Column split + OCR (only when image loaded) ─
+            if (imageUri != null) {
+                Spacer(Modifier.height(12.dp))
 
-        Button(
-            onClick = { menuFileLauncher.launch("text/*") },
-            enabled = !isProcessing && userId != null
-        ) {
-            Text("Upload Existing Menu File")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (statusMessage.isNotEmpty()) {
-            Text(
-                text = statusMessage,
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (statusMessage.startsWith("✅")) {
-                    MaterialTheme.colorScheme.primary
-                } else if (statusMessage.startsWith("❌")) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurface
+                // Step 2 – column split
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(32.dp)) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text("2", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                }
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Menu a Colonne", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    text = if (useColumnSplit) "${manualColumnRegions?.size ?: 0} colonne configurate" else "Attiva se il menu ha più colonne affiancate",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = useColumnSplit,
+                                onCheckedChange = {
+                                    if (!useColumnSplit) showManualSelector = true
+                                    else { useColumnSplit = false; manualColumnRegions = null; statusMessage = "" }
+                                }
+                            )
+                        }
+                        if (useColumnSplit && manualColumnRegions != null) {
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(
+                                onClick = { showManualSelector = true },
+                                enabled = !isProcessing,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Filled.Tune, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Modifica Colonne")
+                            }
+                        }
+                    }
                 }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
 
-        if (recognizedText.isNotEmpty()) {
+                Spacer(Modifier.height(12.dp))
+
+                // Step 3 – OCR
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(32.dp)) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text("3", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                }
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text("Riconosci Testo (OCR)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    text = if (recognizedText.isNotEmpty()) "✓ Testo estratto" else "Avvia il riconoscimento ottico del testo",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (recognizedText.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    isProcessing = true
+                                    if (useColumnSplit && manualColumnRegions != null) {
+                                        statusMessage = "Elaborazione ${manualColumnRegions!!.size} colonne…"
+                                        processImageWithManualColumns(
+                                            context = context,
+                                            bitmap = loadedBitmap!!,
+                                            tesseractManager = tesseractManager,
+                                            columnRegions = manualColumnRegions!!
+                                        ) { text -> recognizedText = text; statusMessage = "✅ Testo estratto"; isProcessing = false }
+                                    } else {
+                                        statusMessage = "Riconoscimento in corso…"
+                                        processImageWithTesseract(
+                                            context = context,
+                                            uri = imageUri!!,
+                                            tesseractManager = tesseractManager,
+                                            useColumnSplit = false
+                                        ) { text -> recognizedText = text; statusMessage = "✅ Testo estratto"; isProcessing = false }
+                                    }
+                                }
+                            },
+                            enabled = !isProcessing && tesseractReady,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Filled.DocumentScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Avvia OCR")
+                        }
+                        if (recognizedText.isNotEmpty()) {
+                            Spacer(Modifier.height(10.dp))
+                            Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.small) {
+                                Text(
+                                    text = recognizedText.take(300) + if (recognizedText.length > 300) "\n…" else "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(10.dp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Step 4: AI + Firebase ─────────────────────────────────
+            if (recognizedText.isNotEmpty()) {
+                Spacer(Modifier.height(12.dp))
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp)) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text("4", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                                }
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text("Analisi AI & Pubblicazione", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                Text("L'AI estrae i piatti e carica su Firebase", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (appendMode)
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = if (appendMode) "➕ Aggiungi al menu esistente" else "🔄 Sostituisci menu esistente",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (appendMode)
+                                            MaterialTheme.colorScheme.onSecondaryContainer
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = if (appendMode)
+                                            "I piatti esistenti vengono mantenuti"
+                                        else
+                                            "I piatti esistenti saranno eliminati",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (appendMode)
+                                            MaterialTheme.colorScheme.onSecondaryContainer
+                                        else
+                                            MaterialTheme.colorScheme.error
+                                    )
+                                }
+                                Switch(
+                                    checked = appendMode,
+                                    onCheckedChange = { appendMode = it }
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    isProcessing = true
+                                    statusMessage = "Analisi AI in corso…"
+                                    val llmClient = LLMApiClient(BuildConfig.GROQ_API_KEY)
+                                    val response = llmClient.processMenuText(recognizedText)
+                                    saveResponseToFile(context, response, useJson = false)
+                                    val menuCategories = MenuParser().parseMenuText(response)
+                                    if (menuCategories.isNotEmpty() && userId != null) {
+                                        val result = FirebaseMenuUploader(databaseReference).uploadMenuWithMetadata(
+                                            userId = userId,
+                                            restaurantName = "My Restaurant",
+                                            menuCategories = menuCategories,
+                                            append = appendMode
+                                        )
+                                        if (result.isSuccess) { statusMessage = "✅ Menu pubblicato con successo!"; hasMenu = true }
+                                        else statusMessage = "❌ Errore: ${result.exceptionOrNull()?.message}"
+                                    } else {
+                                        statusMessage = "❌ Nessun dato trovato o ID utente mancante"
+                                    }
+                                    isProcessing = false
+                                }
+                            },
+                            enabled = !isProcessing && userId != null,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Filled.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(if (appendMode) "Aggiungi al Menu su Firebase" else "Pubblica Menu su Firebase")
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    isProcessing = true
+                                    statusMessage = "Elaborazione AI…"
+                                    val response = LLMApiClient(BuildConfig.GROQ_API_KEY).processMenuText(recognizedText)
+                                    saveResponseToFile(context, response, useJson = false)
+                                    isProcessing = false
+                                    statusMessage = "✅ Risposta AI salvata su file"
+                                }
+                            },
+                            enabled = !isProcessing,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Filled.Save, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Salva Solo Risposta AI")
+                        }
+                    }
+                }
+            }
+
+            // ── Import from QR ────────────────────────────────────────
+            Spacer(Modifier.height(20.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(12.dp))
             Text(
-                text = "Recognized Text:",
-                style = MaterialTheme.typography.titleSmall
+                text = "Il tuo ristorante ha già un QR code?",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onScanQrMenu,
+                enabled = !isProcessing && userId != null,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+            ) {
+                Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Scansiona QR Menu Esistente")
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
+            // ── Importa da Foto (multi-photo) ─────────────────────────
+            Spacer(Modifier.height(12.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(12.dp))
             Text(
-                text = recognizedText.take(500) + if (recognizedText.length > 500) "..." else "",
-                style = MaterialTheme.typography.bodySmall
+                text = "Scatta o carica più foto del menu",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+            Spacer(Modifier.height(8.dp))
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Filled.CameraAlt,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                "Foto del Menu",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = if (photoUris.isEmpty())
+                                    "Analisi automatica in background, come per i PDF"
+                                else
+                                    "✓ ${photoUris.size} foto pronte",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (photoUris.isNotEmpty())
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { multiImageLauncher.launch("image/*") },
+                            enabled = !isProcessing,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Filled.PhotoLibrary, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Galleria")
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                val tempFile = File.createTempFile("menu_photo_", ".jpg", context.cacheDir)
+                                val uri = FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.provider",
+                                    tempFile
+                                )
+                                cameraPhotoUri = uri
+                                cameraPhotoLauncher.launch(uri)
+                            },
+                            enabled = !isProcessing,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Fotocamera")
+                        }
+                    }
+                    if (photoUris.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "${photoUris.size} foto selezionate",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            TextButton(onClick = {
+                                photoUris = emptyList()
+                                cameraPhotoUri = null
+                            }) {
+                                Text("Cancella tutto", color = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    isProcessing = true
+                                    try {
+                                        val ocrText = ImageMenuExtractor.extractText(
+                                            context = context,
+                                            uris = photoUris,
+                                            onProgress = { statusMessage = it }
+                                        )
+                                        if (ocrText.isBlank()) {
+                                            statusMessage = "❌ Impossibile leggere il testo dalle foto."
+                                            isProcessing = false
+                                            return@launch
+                                        }
+                                        val estChunks = (ocrText.length / 4000) + 1
+                                        statusMessage = if (estChunks > 1)
+                                            "Analisi AI (0/$estChunks sezioni)…"
+                                        else
+                                            "Analisi AI in corso…"
+                                        val llmClient = LLMApiClient(BuildConfig.GROQ_API_KEY)
+                                        val response = llmClient.processMenuText(
+                                            menuText = ocrText,
+                                            onProgress = { cur, tot ->
+                                                statusMessage = "Analisi AI: sezione $cur/$tot…"
+                                            }
+                                        )
+                                        val menuCategories = MenuParser().parseMenuText(response)
+                                        if (menuCategories.isNotEmpty() && userId != null) {
+                                            val count = menuCategories.sumOf { it.dishes.size }
+                                            statusMessage = "Arricchimento ingredienti…"
+                                            val enriched = llmClient.enrichDishes(
+                                                categories = menuCategories,
+                                                onProgress = { msg -> statusMessage = msg }
+                                            )
+                                            val result = FirebaseMenuUploader(databaseReference)
+                                                .uploadMenuWithMetadata(
+                                                    userId = userId,
+                                                    restaurantName = "My Restaurant",
+                                                    menuCategories = enriched,
+                                                    append = appendMode
+                                                )
+                                            if (result.isSuccess) {
+                                                statusMessage = "✅ Menu importato da ${photoUris.size} foto: $count piatti!"
+                                                hasMenu = true
+                                                photoUris = emptyList()
+                                            } else {
+                                                statusMessage = "❌ Errore upload: ${result.exceptionOrNull()?.message}"
+                                            }
+                                        } else {
+                                            statusMessage = "❌ Nessun piatto trovato nelle foto."
+                                        }
+                                    } catch (e: Exception) {
+                                        statusMessage = "❌ Errore: ${e.message}"
+                                    }
+                                    isProcessing = false
+                                }
+                            },
+                            enabled = !isProcessing && userId != null && tesseractReady,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Filled.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                if (appendMode)
+                                    "Aggiungi al Menu (${photoUris.size} foto)"
+                                else
+                                    "Analizza e Pubblica (${photoUris.size} foto)"
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }

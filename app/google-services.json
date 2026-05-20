@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "22257862409",
+    "firebase_url": "https://rabiotv01-default-rtdb.firebaseio.com",
+    "project_id": "rabiotv01",
+    "storage_bucket": "rabiotv01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:22257862409:android:c2b20438d32e55541af5d8",
+        "android_client_info": {
+          "package_name": "com.example.ingredient"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfQJuQR3FrDonNdKdoyxfFDVFSXGv4YeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:22257862409:android:5a5d7399659f99971af5d8",
+        "android_client_info": {
+          "package_name": "com.example.rabiot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfQJuQR3FrDonNdKdoyxfFDVFSXGv4YeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
