@@ -1,23 +1,15 @@
-<!-- ⚠️ SUPERSEDED: This plan has been split into 01-04a-PLAN.md and 01-04b-PLAN.md -->
-<!-- Do NOT execute this plan. Execute 04a (Wave 4) then 04b (Wave 5) instead. -->
-
 ---
 phase: 01-deterministic-menu-parser
-plan: 04
+plan: 04a
 type: execute
 wave: 4
-status: superseded
-superseded_by: ["04a", "04b"]
 depends_on: ["00", "01", "02", "03"]
 files_modified:
   - Ingredient/app/src/main/java/com/example/ingredient/parser/enrichment/LLMEnricher.kt
   - Ingredient/app/src/main/java/com/example/ingredient/parser/mapping/AstToDtoMapper.kt
   - Ingredient/app/src/main/java/com/example/ingredient/parser/source/OcrPostProcessor.kt
-  - Ingredient/app/src/main/java/com/example/ingredient/parser/source/HtmlMenuExtractor.kt
-  - Ingredient/app/src/main/java/com/example/ingredient/parser/observability/ParseLogger.kt
-  - Ingredient/app/src/main/java/com/example/ingredient/parser/MenuParserPipeline.kt
 autonomous: true
-requirements: [D-04, D-05, D-09, D-10, D-11, D-12, D-15, D-18]
+requirements: [D-09, D-10, D-11, D-12, D-18]
 
 must_haves:
   truths:
@@ -25,8 +17,6 @@ must_haves:
     - "LLMEnricher validates LLM output against original AST — no hallucinated dish names (D-18)"
     - "AstToDtoMapper converts MenuAST → List<MenuCategory> without exposing internal confidence (D-04/D-05)"
     - "OcrPostProcessor corrects OCR artifacts (l→1 in price context, hyphenated line breaks)"
-    - "HtmlMenuExtractor provides JSON-LD and stripped HTML extraction strategies"
-    - "MenuParserPipeline orchestrates all 8 layers with fallback when avgConfidence < 0.5f (D-15)"
   artifacts:
     - path: "Ingredient/app/src/main/java/com/example/ingredient/parser/enrichment/LLMEnricher.kt"
       provides: "Anti-hallucination LLM enrichment with schema-first prompt"
@@ -37,15 +27,6 @@ must_haves:
     - path: "Ingredient/app/src/main/java/com/example/ingredient/parser/source/OcrPostProcessor.kt"
       provides: "OCR noise correction pre-pass"
       contains: "object OcrPostProcessor"
-    - path: "Ingredient/app/src/main/java/com/example/ingredient/parser/source/HtmlMenuExtractor.kt"
-      provides: "HTML extraction strategies (JSON-LD, strip)"
-      contains: "object HtmlMenuExtractor"
-    - path: "Ingredient/app/src/main/java/com/example/ingredient/parser/observability/ParseLogger.kt"
-      provides: "Structured parse trace logging"
-      contains: "object ParseLogger"
-    - path: "Ingredient/app/src/main/java/com/example/ingredient/parser/MenuParserPipeline.kt"
-      provides: "Main orchestrator with all pipeline layers"
-      contains: "class MenuParserPipeline"
   key_links:
     - from: "LLMEnricher.kt"
       to: "LLMApiClient.kt"
@@ -55,24 +36,17 @@ must_haves:
       to: "MenuCategory"
       via: "Produces List<MenuCategory>"
       pattern: "fun map.*List<MenuCategory>"
-    - from: "MenuParserPipeline.kt"
-      to: "All pipeline components"
-      via: "Orchestrates full pipeline"
-      pattern: "class MenuParserPipeline"
 ---
 
 <objective>
-Build integration layer components and main pipeline orchestrator.
+Build enrichment, mapping, and OCR processing components.
 
-Purpose: Complete the deterministic pipeline with:
+Purpose: Create the first half of integration layer components:
 1. LLMEnricher — anti-hallucination enrichment with strict validation (D-09, D-10, D-11, D-12, D-18)
 2. AstToDtoMapper — converts internal AST to public List<MenuCategory> (D-04, D-05)
 3. OcrPostProcessor — pre-processes OCR output to fix common artifacts
-4. HtmlMenuExtractor — extracts menu content from HTML (JSON-LD, stripped)
-5. ParseLogger — structured observability logging
-6. MenuParserPipeline — main orchestrator running all 8 layers
 
-Output: Six files completing the pipeline implementation.
+Output: Three files providing enrichment, mapping, and OCR processing capabilities.
 </objective>
 
 <context>
@@ -203,139 +177,19 @@ assessQuality(): returns 0-1 score based on:
   <done>OcrPostProcessor with character substitution rules and quality assessment</done>
 </task>
 
-<task type="auto">
-  <name>Task 4: Create HtmlMenuExtractor</name>
-  <files>Ingredient/app/src/main/java/com/example/ingredient/parser/source/HtmlMenuExtractor.kt</files>
-  <read_first>Ingredient/app/src/main/java/com/example/ingredient/parser/source/HtmlMenuExtractor.kt</read_first>
-  <action>
-Created object HtmlMenuExtractor with extract(html: String, url: String): ExtractionResult method.
-
-ExtractionResult data class: text, strategy, confidence.
-Strategy enum: JSON_LD, KNOWN_PLATFORM, STRIPPED_HTML, VISIBLE_TEXT_FALLBACK.
-
-Extraction strategies in priority order:
-1. JSON-LD: extracts <script type="application/ld+json"> containing Menu/MenuItem keywords
-2. Known platforms: detects justeat, thefork, deliveroo, glovo URLs and extracts by class patterns
-3. Stripped HTML: removes script/style/nav/footer/aside/header/form/iframe, converts br/p/div/li/h* to newlines
-4. Fallback: returns raw HTML truncated to 20000 chars
-
-Helper methods:
-- extractJsonLd(): regex-based JSON-LD extraction
-- detectPlatform(): URL-based platform detection
-- extractByPlatform(): class-based content extraction per platform
-- stripHtml(): comprehensive HTML tag removal with entity decoding
-- decodeHtmlEntities(): handles &amp;, &lt;, &gt;, &quot;, &#NNN;
-  </action>
-  <verify>
-    <automated>grep -c "object HtmlMenuExtractor" Ingredient/app/src/main/java/com/example/ingredient/parser/source/HtmlMenuExtractor.kt</automated>
-  </verify>
-  <acceptance_criteria>
-- File exists at parser/source/HtmlMenuExtractor.kt
-- `grep 'object HtmlMenuExtractor' HtmlMenuExtractor.kt` returns 1 match
-- `grep 'fun extract' HtmlMenuExtractor.kt` returns 1 match
-- `grep 'JSON_LD\|KNOWN_PLATFORM\|STRIPPED_HTML' HtmlMenuExtractor.kt` returns 3+ matches
-- `grep 'extractJsonLd' HtmlMenuExtractor.kt` returns 1+ matches
-  </acceptance_criteria>
-  <done>HtmlMenuExtractor with JSON-LD, platform-specific, and stripped HTML extraction strategies</done>
-</task>
-
-<task type="auto">
-  <name>Task 5: Create ParseLogger</name>
-  <files>Ingredient/app/src/main/java/com/example/ingredient/parser/observability/ParseLogger.kt</files>
-  <read_first>Ingredient/app/src/main/java/com/example/ingredient/parser/observability/ParseLogger.kt</read_first>
-  <action>
-Created object ParseLogger with log(result: MenuParseResult) method.
-
-Logs structured parse trace including:
-- Parse mode (STRICT/BALANCED/AGGRESSIVE)
-- Overall confidence (3 decimal places)
-- Duration in milliseconds
-- Section count
-- Total item count
-- LLM fallback flag
-- Warnings list
-- Token classification breakdown from trace
-- Confidence breakdown map
-
-Output format: ASCII-boxed log block for easy grep/filtering.
-Uses Android Log.d with TAG = "MenuParser".
-  </action>
-  <verify>
-    <automated>grep -c "object ParseLogger" Ingredient/app/src/main/java/com/example/ingredient/parser/observability/ParseLogger.kt</automated>
-  </verify>
-  <acceptance_criteria>
-- File exists at parser/observability/ParseLogger.kt
-- `grep 'object ParseLogger' ParseLogger.kt` returns 1 match
-- `grep 'fun log' ParseLogger.kt` returns 1 match
-- `grep 'MenuParseResult' ParseLogger.kt` returns 1+ matches
-- `grep 'Log.d' ParseLogger.kt` returns 1+ matches
-  </acceptance_criteria>
-  <done>ParseLogger with structured trace output for debugging and monitoring</done>
-</task>
-
-<task type="auto">
-  <name>Task 6: Create MenuParserPipeline orchestrator</name>
-  <files>Ingredient/app/src/main/java/com/example/ingredient/parser/MenuParserPipeline.kt</files>
-  <read_first>Ingredient/app/src/main/java/com/example/ingredient/parser/MenuParserPipeline.kt</read_first>
-  <action>
-Created class MenuParserPipeline(llmEnricher: LLMEnricher?, mode: ParsingMode, confidenceThreshold: Float, enrichmentThreshold: Float) with parse(rawContent: String, sourceType: SourceType): MenuParseResult method.
-
-MenuParseResult data class: categories, ast, confidence, mode, usedLlmFallback, warnings, durationMs.
-
-Pipeline layers executed in order:
-1. Layer 0: MenuContentPreprocessor.preprocess() (existing, D-06)
-2. OCR correction: OcrPostProcessor.process() for OCR/PDF sources
-3. Line normalization: split by newlines, trim
-4. Locale detection: LocalePackRegistry.detect()
-5. Lexer: LineClassifier.classify() each line
-6. Grammar parser: MenuGrammarParser.parse() with WindowedContextResolver
-7. Validation: StructuralValidator.validate() — returns partial if canProceed=false
-8. Repair: RepairEngine.repair()
-9. Confidence: ConfidenceEngine.score()
-10. LLM enrichment: only if overallConf >= enrichmentThreshold (0.65f) and llmEnricher != null
-11. Mapping: AstToDtoMapper.map()
-
-Error handling: returns empty result with error warning on exception.
-Timing: tracks startMs through completion.
-Logging: Android Log.d throughout for debugging.
-
-confidenceThreshold = 0.5f (per D-15 — fallback when avgConfidence < 0.5)
-enrichmentThreshold = 0.65f (per D-12)
-  </action>
-  <verify>
-    <automated>grep -c "class MenuParserPipeline" Ingredient/app/src/main/java/com/example/ingredient/parser/MenuParserPipeline.kt</automated>
-  </verify>
-  <acceptance_criteria>
-- File exists at parser/MenuParserPipeline.kt
-- `grep 'class MenuParserPipeline' MenuParserPipeline.kt` returns 1 match
-- `grep 'data class MenuParseResult' MenuParserPipeline.kt` returns 1 match
-- `grep 'suspend fun parse' MenuParserPipeline.kt` returns 1 match
-- `grep 'MenuContentPreprocessor' MenuParserPipeline.kt` returns 1+ matches (D-06)
-- `grep 'LineClassifier' MenuParserPipeline.kt` returns 1+ matches
-- `grep 'MenuGrammarParser' MenuParserPipeline.kt` returns 1+ matches
-- `grep 'RepairEngine' MenuParserPipeline.kt` returns 1+ matches
-- `grep 'ConfidenceEngine' MenuParserPipeline.kt` returns 1+ matches
-- `grep 'AstToDtoMapper' MenuParserPipeline.kt` returns 1+ matches
-  </acceptance_criteria>
-  <done>MenuParserPipeline orchestrating all 8 pipeline layers with proper thresholds and error handling</done>
-</task>
-
 </tasks>
 
 <verification>
 ```bash
-# Verify all 6 files exist
+# Verify all 3 files exist
 ls -la Ingredient/app/src/main/java/com/example/ingredient/parser/enrichment/LLMEnricher.kt
 ls -la Ingredient/app/src/main/java/com/example/ingredient/parser/mapping/AstToDtoMapper.kt
 ls -la Ingredient/app/src/main/java/com/example/ingredient/parser/source/OcrPostProcessor.kt
-ls -la Ingredient/app/src/main/java/com/example/ingredient/parser/source/HtmlMenuExtractor.kt
-ls -la Ingredient/app/src/main/java/com/example/ingredient/parser/observability/ParseLogger.kt
-ls -la Ingredient/app/src/main/java/com/example/ingredient/parser/MenuParserPipeline.kt
 
 # Verify key patterns
 grep "class LLMEnricher" Ingredient/app/src/main/java/com/example/ingredient/parser/enrichment/LLMEnricher.kt
 grep "object AstToDtoMapper" Ingredient/app/src/main/java/com/example/ingredient/parser/mapping/AstToDtoMapper.kt
-grep "class MenuParserPipeline" Ingredient/app/src/main/java/com/example/ingredient/parser/MenuParserPipeline.kt
+grep "object OcrPostProcessor" Ingredient/app/src/main/java/com/example/ingredient/parser/source/OcrPostProcessor.kt
 
 # Build check
 cd Ingredient && ./gradlew compileDebugKotlin --quiet
@@ -343,16 +197,13 @@ cd Ingredient && ./gradlew compileDebugKotlin --quiet
 </verification>
 
 <success_criteria>
-- All 6 files exist at specified paths
+- All 3 files exist at specified paths
 - LLMEnricher has ENRICH_THRESHOLD = 0.65f, MAX_RETRIES = 2, temperature = 0.0
 - AstToDtoMapper converts MenuAST → List<MenuCategory>
 - OcrPostProcessor has process() and assessQuality() methods
-- HtmlMenuExtractor has JSON-LD, platform, and stripped strategies
-- ParseLogger outputs structured trace
-- MenuParserPipeline orchestrates all layers
 - Build compiles without errors
 </success_criteria>
 
 <output>
-After verification, create `.planning/phases/01-deterministic-menu-parser/01-04-SUMMARY.md`
+After verification, create `.planning/phases/01-deterministic-menu-parser/01-04a-SUMMARY.md`
 </output>
