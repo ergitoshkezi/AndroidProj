@@ -33,23 +33,63 @@
 - DO NOT change to 70b — breaks JSON output format
 - Only model that reliably outputs clean JSON arrays
 
-## Extraction pipeline (May 2026)
+## 7-Stage Deterministic Parser (May 2026)
 
-### Pass 1 — Raw extraction
-1. JS_EXTRACT_TEXT detects h2/h3/h4 → "=== CATEGORIA: X ===" markers
-2. LLMApiClient.processMenuText():
-   - If markers → processBySections() (per-section with retry)
-   - If large text → processInChunks()
-   - Else → single call
-3. MenuParser.parseMenuText() → List<MenuCategory>
+The new MenuParserPipeline replaces simple LLM parsing with sophisticated local analysis:
 
-### Pass 2 — Enrichment (deterministic)
-4. LLMApiClient.enrichDishes():
-   - Finds dishes with empty description OR calories==0 OR empty country
-   - Batches 15 at a time (maxTokens=2048, safe for TPM)
-   - LLM infers from dish name: ingredienti, calorie, paese, regione
-   - Merges back — does NOT overwrite fields already filled in pass 1
-   - Goal: 100% of dishes always have ingredients, calories, country
+### Stage 1: Preprocessing
+- MenuContentPreprocessor extracts clean menu from Next.js/__NEXT_DATA__, API JSON
+- Reduces noise, normalizes whitespace
+
+### Stage 2: OCR Correction
+- OcrPostProcessor detects and repairs common OCR artifacts
+- Quality assessment: char confidence, reasonable word distributions
+
+### Stage 3: Lexer (semantic tokenization)
+- LineClassifier assigns semantic type to each line
+- Types: Noise, Divider, StrongHeader, WeakHeader, DishCandidate, DishWithPrice, StandalonePrice, Allergen, Description
+- Locale-aware (Italian, English, Spanish, etc.)
+
+### Stage 4: Grammar Parser (state machine)
+- MenuGrammarParser builds AST with state transitions
+- Tracks price association: STANDALONE, SAME_LINE, NEXT_LINE
+- Tracks description binding: ABOVE, BELOW, SAME_LINE
+- Handles multi-line items and ambiguous structures
+
+### Stage 5: Structural Validation & Repair
+- StructuralValidator checks AST against parsing rules
+- RepairEngine fixes issues: malformed categories, duplicate headers, missing descriptions
+- Logs repair events for observability
+
+### Stage 6: Confidence Scoring
+- ConfidenceEngine scores each item: overall, headerConfidence, itemConfidence, descriptionConfidence
+- Three parsing modes:
+  - STRICT (confidence floor 0.80): high-confidence only
+  - BALANCED (default, 0.45): mixed heuristic + LLM
+  - AGGRESSIVE (0.15): capture everything, repair later
+
+### Stage 7: Multi-Pass Reconciliation + Semantic Intelligence
+- MultiPassReconciler (4 passes):
+  - Pass 1: visual promotion (from DOM snapshots)
+  - Pass 2: ontology correction (FoodOntology reference)
+  - Pass 3: confidence propagation
+  - Pass 4: final structure validation
+- SemanticIntelligenceLayer (optional, runs if confidence >= 0.30):
+  - OCR repair (Gemini 2.5 Flash)
+  - Plausibility check (LLM validation)
+  - Category anomaly detection (dish in wrong category)
+  - Final enrichment (fill gaps)
+
+### Final: LLM-Powered Enrichment (2-pass)
+- **Pass 1 (raw extraction)**: LLM extracts dishes as-is from text
+  - processBySections() if markers detected
+  - processInChunks() if > 300k chars
+  - processStructuredDom() if DOM JSON available
+- **Pass 2 (enrichment)**: enrichDishes()
+  - Batches 15 dishes at a time (maxTokens=2048)
+  - Infers: ingredients, calories, country, region
+  - Never overwrites existing fields
+  - Goal: 100% non-empty critical fields
 
 ## Language rule
 - LLM prompts: "mantieni la lingua originale. NON tradurre."
